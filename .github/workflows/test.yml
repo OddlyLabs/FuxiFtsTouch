@@ -1,0 +1,23 @@
+name: Test
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Host tests (gcc, clang; ASan, UBSan)
+        run: |
+          flags="-std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror -g -fsanitize=address,undefined"
+          for cc in gcc clang; do
+            for t in fts-protocol touch-core; do
+              $cc $flags -I. Test/$t.c FtsProtocol.c FtsTouchCore.c -o /tmp/$t-$cc
+              /tmp/$t-$cc
+            done
+          done
